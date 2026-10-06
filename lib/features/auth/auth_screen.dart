@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../feed/feed_screen.dart';
+import '../../core/services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -11,30 +13,59 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
+
   bool _isLogin = true;
+  bool _isLoading = false;
 
   String _email = '';
   String _password = '';
   String _username = '';
 
-  void _submit() {
+  void _submit() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isLogin ? 'กำลังเข้าสู่ระบบ...' : 'กำลังสร้างบัญชี...',
-          ),
-          backgroundColor: const Color(0xFF1877F2),
-        ),
-      );
+      setState(() {
+        _isLoading = true;
+      });
 
-      // เปลี่ยนไปหน้า Feed เมื่อล็อกอินสำเร็จ
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const FeedScreen()),
-      );
+      try {
+        if (_isLogin) {
+          await _authService.signInWithEmailPassword(_email, _password);
+        } else {
+          await _authService.signUpWithEmailPassword(_email, _password);
+        }
+
+        // ล็อกอินสำเร็จ เปลี่ยนไปหน้า Feed
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const FeedScreen()),
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        String message = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+        if (e.code == 'user-not-found' ||
+            e.code == 'wrong-password' ||
+            e.code == 'invalid-credential') {
+          message = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+        } else if (e.code == 'email-already-in-use') {
+          message = 'อีเมลนี้มีผู้ใช้งานในระบบแล้ว';
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -49,7 +80,6 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // โลโก้ Mingle ที่ตัว i เป็นรูปแชท
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -75,9 +105,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             color: Color(0xFF1877F2),
                             size: 36,
                           ),
-                          // ซ้อนตัว i สีขาวไว้ตรงกลางไอคอนแชท
                           Container(
-                            margin: const EdgeInsets.only(bottom: 4.0), // ดันขึ้นเล็กน้อยให้อยู่กึ่งกลางกล่องพอดี (หลบหางลูกโป่ง)
+                            margin: const EdgeInsets.only(bottom: 4.0),
                             child: const Text(
                               'i',
                               style: TextStyle(
@@ -108,12 +137,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.person),
                     ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'กรุณากรอกชื่อผู้ใช้';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'กรุณากรอกชื่อผู้ใช้'
+                        : null,
                     onSaved: (value) => _username = value!,
                   ),
                 if (!_isLogin) const SizedBox(height: 16),
@@ -124,14 +150,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     prefixIcon: Icon(Icons.email),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null ||
-                        value.trim().isEmpty ||
-                        !value.contains('@')) {
-                      return 'กรุณากรอกอีเมลให้ถูกต้อง';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      value == null ||
+                          value.trim().isEmpty ||
+                          !value.contains('@')
+                      ? 'กรุณากรอกอีเมลให้ถูกต้อง'
+                      : null,
                   onSaved: (value) => _email = value!,
                 ),
                 const SizedBox(height: 16),
@@ -142,12 +166,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     prefixIcon: Icon(Icons.lock),
                   ),
                   obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.length < 6) {
-                      return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.length < 6
+                      ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'
+                      : null,
                   onSaved: (value) => _password = value!,
                 ),
                 const SizedBox(height: 24),
@@ -159,19 +180,17 @@ class _AuthScreenState extends State<AuthScreen> {
                       backgroundColor: const Color(0xFF1877F2),
                       foregroundColor: Colors.white,
                     ),
-                    onPressed: _submit,
-                    child: Text(
-                      _isLogin ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก',
-                      style: const TextStyle(fontSize: 18),
-                    ),
+                    onPressed: _isLoading ? null : _submit,
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            _isLogin ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก',
+                            style: const TextStyle(fontSize: 18),
+                          ),
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _isLogin = !_isLogin;
-                    });
-                  },
+                  onPressed: () => setState(() => _isLogin = !_isLogin),
                   child: Text(
                     _isLogin
                         ? 'ยังไม่มีบัญชีใช่ไหม? สมัครสมาชิกเลย'
