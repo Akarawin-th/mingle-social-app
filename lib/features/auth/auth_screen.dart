@@ -18,7 +18,6 @@ class _AuthScreenState extends State<AuthScreen> {
   String _username = '';
 
   void _submit() {
-    // ระบบ Error Handling: ตรวจสอบความถูกต้องของฟอร์มก่อนทำงาน
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -31,6 +30,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       );
 
+      // เปลี่ยนไปหน้า Feed เมื่อล็อกอินสำเร็จ
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const FeedScreen()),
@@ -49,13 +49,56 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'Mingle',
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1877F2),
-                  ),
+                // โลโก้ Mingle ที่ตัว i เป็นรูปแชท
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'M',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1877F2),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 8.0,
+                        right: 2.0,
+                        left: 2.0,
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(
+                            Icons.chat_bubble,
+                            color: Color(0xFF1877F2),
+                            size: 36,
+                          ),
+                          // ซ้อนตัว i สีขาวไว้ตรงกลางไอคอนแชท
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 4.0), // ดันขึ้นเล็กน้อยให้อยู่กึ่งกลางกล่องพอดี (หลบหางลูกโป่ง)
+                            child: const Text(
+                              'i',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Text(
+                      'ngle',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1877F2),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 40),
                 if (!_isLogin)
@@ -67,7 +110,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'กรุณากรอกชื่อผู้ใช้'; // Error Handling
+                        return 'กรุณากรอกชื่อผู้ใช้';
                       }
                       return null;
                     },
@@ -85,7 +128,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     if (value == null ||
                         value.trim().isEmpty ||
                         !value.contains('@')) {
-                      return 'กรุณากรอกอีเมลให้ถูกต้อง'; // Error Handling
+                      return 'กรุณากรอกอีเมลให้ถูกต้อง';
                     }
                     return null;
                   },
@@ -101,7 +144,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.length < 6) {
-                      return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; // Error Handling
+                      return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
                     }
                     return null;
                   },

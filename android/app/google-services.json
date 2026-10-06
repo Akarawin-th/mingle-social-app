@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "381125793960",
+    "project_id": "mingle-app-bc2c1",
+    "storage_bucket": "mingle-app-bc2c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:381125793960:android:606256024cc34b48058a9d",
+        "android_client_info": {
+          "package_name": "com.example.mingle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWqAq9YC9XuTgZ4kAclBy43xhVSJOP634"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

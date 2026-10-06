@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'features/auth/auth_screen.dart';
 
-void main() {
+void main() async {
+  // สำคัญมาก: ต้องบอกให้ Flutter เตรียมตัวก่อนเรียกใช้ Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // เริ่มต้นเชื่อมต่อ Firebase ตามค่าในไฟล์อัตโนมัติ
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MingleApp());
 }
 
